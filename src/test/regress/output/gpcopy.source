@@ -1694,5 +1694,3 @@ SELECT * FROM dist_rep_dst;
 ---+---
 (0 rows)
 
-DROP TABLE dist_rep_src;
-DROP TABLE dist_rep_dst;
