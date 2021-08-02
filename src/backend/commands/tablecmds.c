@@ -4810,11 +4810,15 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 						/* Reject interior branches of partitioned tables. */
 						if (rel->rd_rel->relispartition)
 						{
-							ereport(ERROR,
-									(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-									 errmsg("can't set the distribution policy of \"%s\"",
-											RelationGetRelationName(rel)),
-									 errhint("Distribution policy can be set for an entire partitioned table, not for one of its leaf parts or an interior branch.")));
+							Oid parent_oid = get_partition_parent(RelationGetRelid(rel));
+							Relation parent_rel = relation_open(parent_oid, lockmode);
+							if (!GpPolicyEqual(policy, parent_rel->rd_cdbpolicy) &&
+								!GpPolicyIsRandomPartitioned(policy))
+								ereport(ERROR,
+										(errcode(ERRCODE_WRONG_OBJECT_TYPE),
+										errmsg("can't set the distribution policy of \"%s\"",
+												RelationGetRelationName(rel)),
+										errhint("Distribution policy of a partition can only be set to RANDOMLY or the same as its parent's.")));
 						}
 
 						if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE &&
@@ -4830,9 +4834,9 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 							{
 								ereport(ERROR,
 										(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-										 errmsg("can't set the distribution policy of ONLY \"%s\"",
+										 errmsg("can't set the distribution policy of \"%s\" ONLY",
 												RelationGetRelationName(rel)),
-										 errhint("Distribution policy can be set for an entire partitioned table, not for one of its leaf parts or an interior branch.")));
+										 errhint("Distribution policy can be set for the entire partitioned table.")));
 							}
 						}
 					}
