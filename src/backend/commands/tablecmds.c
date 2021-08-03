@@ -4864,14 +4864,12 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 
 				if (!recurse)
 				{
-					List *children = find_inheritance_children(RelationGetRelid(rel), lockmode);
-					if (children != NIL)
-						ereport(ERROR,
-								(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-								errmsg("cannot expand only \"%s\" when it has children",
-										RelationGetRelationName(rel)),
-								errdetail("Root/leaf/interior partitions need to have same numsegments"),
-								errhint("Call ALTER TABLE EXPAND TABLE on the root table instead")));
+					ereport(ERROR,
+							(errcode(ERRCODE_WRONG_OBJECT_TYPE),
+							errmsg("cannot expand only \"%s\" when it has children",
+									RelationGetRelationName(rel)),
+							errdetail("Root/leaf/interior partitions need to have same numsegments"),
+							errhint("Call ALTER TABLE EXPAND TABLE on the root table instead")));
 				}
 
 				if (rel->rd_rel->relispartition)
