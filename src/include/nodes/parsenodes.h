@@ -1993,6 +1993,7 @@ typedef enum AlterTableType
 
 	AT_SetDistributedBy,		/* SET DISTRIBUTED BY */
 	AT_ExpandTable,          /* EXPAND DISTRIBUTED */
+	AT_ExpandTablePrepare,		/* EXPAND TABLE PREPARE */
 
 	/* GPDB: Legacy commands to manipulate partitions */
 	AT_PartAdd,					/* Add */

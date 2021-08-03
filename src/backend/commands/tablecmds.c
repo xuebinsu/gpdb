@@ -476,6 +476,7 @@ static void RangeVarCallbackForAlterRelation(const RangeVar *rv, Oid relid,
 											 Oid oldrelid, void *arg);
 
 static void ATExecExpandTable(List **wqueue, Relation rel, AlterTableCmd *cmd);
+static void ATExecExpandTablePrepare(List **wqueue, Relation rel);
 static void ATExecExpandTableCTAS(AlterTableCmd *rootCmd, Relation rel, AlterTableCmd *cmd);
 
 static void ATExecSetDistributedBy(Relation rel, Node *node,
@@ -4454,6 +4455,7 @@ AlterTableGetLockLevel(List *cmds)
 
 				/* GPDB additions */
 			case AT_ExpandTable:
+			case AT_ExpandTablePrepare:
 			case AT_SetDistributedBy:
 				cmd_lockmode = AccessExclusiveLock;
 				break;
@@ -4846,6 +4848,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			pass = AT_PASS_MISC;
 			break;
 		case AT_ExpandTable:
+		case AT_ExpandTablePrepare:
 			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
 
 			/* GPDB_12_MERGE_FIXME: do we have these checks on ATTACH? */
@@ -5313,6 +5316,9 @@ ATExecCmd(List **wqueue, AlteredTableInfo *tab, Relation rel,
 			break;
 		case AT_ExpandTable:	/* EXPAND TABLE */
 			ATExecExpandTable(wqueue, rel, cmd);
+			break;
+		case AT_ExpandTablePrepare:	/* EXPAND TABLE PREPARE */
+			ATExecExpandTablePrepare(wqueue, rel);
 			break;
 		case AT_AttachPartition:
 			if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
@@ -16305,6 +16311,37 @@ ATExecExpandTable(List **wqueue, Relation rel, AlterTableCmd *cmd)
 	/* Update numsegments to cluster size */
 	newPolicy->numsegments = getgpsegmentCount();
 	GpPolicyReplace(relid, newPolicy);
+}
+
+/**
+ * ALTER TABLE EXPAND TABLE PREPARE
+ * 
+ * 
+ */
+static void
+ATExecExpandTablePrepare(List **wqueue, Relation rel)
+{
+	if (rel->rd_rel->relkind != RELKIND_PARTITIONED_TABLE)
+		return;
+
+    GpPolicy *root_dist = rel->rd_cdbpolicy;
+
+	if (!GpPolicyIsHashPartitioned(root_dist))
+		return;
+
+    int new_numsegments = getgpsegmentCount();
+    root_dist->numsegments = new_numsegments;
+
+    GpPolicy *random_dist = createRandomPartitionedPolicy(new_numsegments);
+	ListCell *lc = NULL;
+    foreach (lc, *wqueue)
+    {
+        AlteredTableInfo *table = (AlteredTableInfo *) lfirst(lc);
+        if (table->relkind != RELKIND_PARTITIONED_TABLE)
+            GpPolicyReplace(table->relid, random_dist);
+        else
+            GpPolicyReplace(table->relid, root_dist);
+    }
 }
 
 static void
