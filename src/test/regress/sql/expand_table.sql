@@ -86,6 +86,12 @@ insert into t1 select i,i,0 from generate_series(1,100) I;
 
 Select gp_segment_id, count(*) from t1 group by gp_segment_id;
 
+-- Test expanding partitions individually, expecting failures
+ALTER TABLE ONLY t1 EXPAND TABLE;
+ALTER TABLE t1_1_prt_t1_1 EXPAND TABLE;
+ALTER TABLE t1_1_prt_t1_2 EXPAND TABLE;
+ALTER TABLE t1_1_prt_other EXPAND TABLE;
+
 begin;
 Alter table t1 expand table;
 Select gp_segment_id, count(*) from t1 group by gp_segment_id;

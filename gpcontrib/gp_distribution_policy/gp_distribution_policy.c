@@ -44,6 +44,10 @@ extern Datum gp_distribution_policy_table_check(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(gp_distribution_policy_table_check);
 
+extern Datum gp_hash_tuple_to_segment_id(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(gp_hash_tuple_to_segment_id);
+
 /* 
  * Verifies the correct data distribution (given a GpPolicy) 
  * of a table in a segment.
@@ -109,4 +113,36 @@ gp_distribution_policy_table_check(PG_FUNCTION_ARGS)
 	table_close(rel, AccessShareLock);
 	
 	PG_RETURN_BOOL(result);
+}
+
+Datum 
+gp_hash_tuple_to_segment_id(PG_FUNCTION_ARGS)
+{
+    HeapTupleHeader tuple = PG_GETARG_HEAPTUPLEHEADER(0);
+    int num_segs = PG_GETARG_INT32(1);
+
+    Oid relOid = get_typ_typrelid(HeapTupleHeaderGetTypeId(tuple));
+    Relation rel = table_open(relOid, AccessShareLock);
+    GpPolicy *policy = rel->rd_cdbpolicy;
+
+    CdbHash *hash = makeCdbHashForRelation(rel);
+    hash->numsegs = num_segs;
+
+    cdbhashinit(hash);
+
+    /* Add every attribute in the distribution policy to the hash */
+    for (int i = 0; i < policy->nattrs; i++)
+    {
+        int            attnum = policy->attrs[i];
+        bool        isNull;
+        Datum        attr;
+
+        attr = GetAttributeByNum(tuple, attnum, &isNull);
+
+        cdbhash(hash, i + 1, attr, isNull);
+    }
+
+    pfree(hash);
+    table_close(rel, AccessShareLock);
+    PG_RETURN_UINT32(cdbhashreduce(hash));
 }

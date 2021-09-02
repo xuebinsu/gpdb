@@ -177,6 +177,23 @@ Select gp_segment_id, count(*) from t1 group by gp_segment_id;
              0 |   100
 (1 row)
 
+-- Test expanding partitions individually, expecting failures
+ALTER TABLE ONLY t1 EXPAND TABLE;
+ERROR:  cannot expand only table "t1"
+DETAIL:  Root/leaf/interior partitions need to have same numsegments
+HINT:  Call ALTER TABLE EXPAND TABLE on the root table instead
+ALTER TABLE t1_1_prt_t1_1 EXPAND TABLE;
+ERROR:  cannot expand leaf or interior partition "t1_1_prt_t1_1"
+DETAIL:  Root/leaf/interior partitions need to have same numsegments
+HINT:  Call ALTER TABLE EXPAND TABLE on the root table instead
+ALTER TABLE t1_1_prt_t1_2 EXPAND TABLE;
+ERROR:  cannot expand leaf or interior partition "t1_1_prt_t1_2"
+DETAIL:  Root/leaf/interior partitions need to have same numsegments
+HINT:  Call ALTER TABLE EXPAND TABLE on the root table instead
+ALTER TABLE t1_1_prt_other EXPAND TABLE;
+ERROR:  cannot expand leaf or interior partition "t1_1_prt_other"
+DETAIL:  Root/leaf/interior partitions need to have same numsegments
+HINT:  Call ALTER TABLE EXPAND TABLE on the root table instead
 begin;
 Alter table t1 expand table;
 Select gp_segment_id, count(*) from t1 group by gp_segment_id;

@@ -422,6 +422,26 @@ Feature: expand the cluster by adding more segments
         When the user runs gpexpand to redistribute
         Then the numsegments of table "ext_test" is 4
 
+    @gpexpand_expand_partitions_in_parallel
+    Scenario: Gpexpand should expand partitions in parallel 
+        And a working directory of the test as '/data/gpdata/gpexpand'
+        And a temporary directory under "/data/gpdata/gpexpand/expandedData" to expand into
+        And the cluster is generated with "3" primaries only
+        And database "gptest" exists
+        And the user creates a partitioned table with name "test" and data
+        And there are no gpexpand_inputfiles
+        And the cluster is setup for an expansion on hosts "localhost"
+        When the user runs gpexpand interview to add 1 new segment and 0 new host "ignored.host"
+        Then the number of segments have been saved
+        When the user runs gpexpand with the latest gpexpand_inputfile with additional parameters "--silent"
+        Then verify that the cluster has 1 new segments
+        Then verify that the distribution policies of partitioned table "test" and its children are correct
+        Then verify that only leaf partitions of partitioned table "test" need to be expanded
+        Then insert some data into partitioned table named "test"
+        Then verify that point query on partitioned table named "test" on the new segment return correct result
+        When the user runs gpexpand to redistribute
+        Then verify that point query on partitioned table named "test" on the new segment return correct result
+
     @gpexpand_verify_matview
     Scenario: Gpexpand should succeed when expand materialized view
         Given the database is not running

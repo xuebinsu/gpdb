@@ -191,6 +191,14 @@ def impl(conetxt, tabname):
         dbconn.execSQL(conn, sql)
         conn.commit()
 
+@given('the user creates a partitioned table with name {tabname} and data')
+def impl(context, tabname):
+    dbname = 'gptest'
+    with closing(dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)) as conn:
+        sql = ("create table if not exists {tabname}(i int, j int) distributed by (i) "
+               "partition by range (j) (start (2001) end (2002) inclusive every (1))").format(tabname=tabname)
+        dbconn.execSQL(conn, sql)
+        conn.commit()
 
 @given('the user executes "{sql}" with named connection "{cname}"')
 def impl(context, cname, sql):
@@ -2422,9 +2430,9 @@ def impl(context, tabname, numsegments):
     if ns == int(numsegments):
         return
 
-    raise Exception("The numsegments of the writable external table {tabname} is {ns} (expected to be {numsegments})".format(tabname=tabname,
-                                                                                                                             ns=str(ns),
-                                                                                                                             numsegments=str(numsegments)))
+    raise Exception("The numsegments of the table {tabname} is {ns} (expected to be {numsegments})".format(tabname=tabname,
+                                                                                                            ns=str(ns),
+                                                                                                            numsegments=str(numsegments)))
 
 @given('the number of segments have been saved')
 @then('the number of segments have been saved')
@@ -2575,6 +2583,83 @@ def impl(context, num_of_segments):
     raise Exception("Incorrect amount of segments.\nprevious: %s\ncurrent:"
             "%s\ndump of gp_segment_configuration: %s" %
             (context.start_data_segments, end_data_segments, rows))
+
+@then('verify that the distribution policies of partitioned table "{tabname}" and its children are correct')
+def impl(context, tabname):
+    dbname = 'gptest'
+    with closing(dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)) as conn:
+        query = """
+            SELECT * FROM gp_distribution_policy, pg_partition_tree(localoid)
+            WHERE localoid = '%s'::regclass;
+        """ % tabname
+        rows = dbconn.query(conn, query).fetchall()
+        numsegments = rows[0][2]
+        for row in rows:
+            if row[2] != numsegments:
+                raise Exception("numsegments do not match for partition table and its children after gpexpand")
+            policytype = row[1]
+            parentrelid = row[6]
+            distkey = row[3]
+            if policytype == 'p' and (parentrelid is None and distkey is not None) or (
+                parentrelid is not None and distkey is not None):
+                pass
+            else:
+                raise Exception("Distribution policies of partition table and its children are not correct")
+
+
+@then('verify that only leaf partitions of partitioned table "{tabname}" need to be expanded')
+def impl(context, tabname):
+    dbname = 'gptest'
+    with closing(dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)) as conn, \
+        closing(dbconn.connect(dbconn.DbURL(dbname='postgres'), unsetSearchPath=False)) as conn_postgres:
+        query = """
+            SELECT * FROM pg_partition_tree('%s')
+        """ % tabname
+        children = dbconn.query(conn, query).fetchall()
+
+        query = """
+            SELECT * FROM gpexpand.status_detail
+            WHERE root_partition_name = 'public.%s';
+        """ % tabname
+        rows = dbconn.query(conn_postgres, query).fetchall()
+        num_children_to_expand = 0
+        num_leaves = 0
+        for row in rows:
+            for child in children:
+                localoid, table_oid = child[0], row[2]
+                is_leaf = child[7]
+                if is_leaf:
+                    num_leaves += 1
+                if localoid == table_oid:
+                    if not is_leaf:
+                        raise Exception('Non-leaf partitions are added to gpexpand.status_detail to expand')
+                    num_children_to_expand += 1
+        if num_leaves != num_children_to_expand:
+            raise Exception("Not all leaf partitions are added to gpexpand.status_detail to expand")
+
+@then('insert some data into partitioned table named "{tabname}"')
+def impl(context, tabname):
+    dbname = 'gptest'
+    with closing(dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)) as conn:
+        query = """
+            INSERT INTO %s
+            SELECT *, 0 FROM generate_series(1, 10), (VALUES (2001), (2002)) AS pk
+        """ % tabname
+        dbconn.execSQL(query, conn)
+        conn.commit()
+
+@then('verify that point query on partitioned table named "{tabname}" on the new segment return correct result')
+def impl(context, tabname):
+    dbname = 'gptest'
+    with closing(dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)) as conn:
+        dbconn.query('SET optimizer TO off;', conn)
+        query = """
+            SELECT * FROM %s WHERE dk = 2;
+        """ % tabname
+        rows = dbconn.query(query, conn).fetchall()
+        if len(rows) == 0:
+            raise Exception(
+                'Point query on partitioned table named "%s" does not return correct result' % tabname)
 
 @given('the cluster is setup for an expansion on hosts "{hostnames}"')
 def impl(context, hostnames):

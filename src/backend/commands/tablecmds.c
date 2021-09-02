@@ -4813,14 +4813,20 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 						if (rel->rd_rel->relispartition)
 						{
 							Oid parent_oid = get_partition_parent(RelationGetRelid(rel));
-							Relation parent_rel = relation_open(parent_oid, lockmode);
-							if (!GpPolicyEqual(policy, parent_rel->rd_cdbpolicy) &&
-								!GpPolicyIsRandomPartitioned(policy))
+							/**
+							 * Taking AccessShareLock is sufficient to prevent 
+							 * DROP TABLE and ALTER TABLE DETACH PARTITION for the parent
+							 */
+							Relation parent_rel = relation_open(parent_oid, AccessShareLock);
+							bool conflict = !GpPolicyEqual(policy, parent_rel->rd_cdbpolicy) &&
+											!GpPolicyIsRandomPartitioned(policy);
+							relation_close(parent_rel, AccessShareLock);
+							if (conflict)
 								ereport(ERROR,
 										(errcode(ERRCODE_WRONG_OBJECT_TYPE),
 										errmsg("can't set the distribution policy of \"%s\"",
 												RelationGetRelationName(rel)),
-										errhint("Distribution policy of a partition can only be set to RANDOMLY or the same as its parent's.")));
+										errhint("Distribution policy of a partition can only be set to RANDOMLY or to the same as its parent's.")));
 						}
 
 						if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE &&
@@ -4866,7 +4872,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 				{
 					ereport(ERROR,
 							(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-							errmsg("cannot expand only \"%s\" when it has children",
+							errmsg("cannot expand only table \"%s\"",
 									RelationGetRelationName(rel)),
 							errdetail("Root/leaf/interior partitions need to have same numsegments"),
 							errhint("Call ALTER TABLE EXPAND TABLE on the root table instead")));

@@ -11,6 +11,11 @@ RETURNS boolean
 AS '$libdir/gp_distribution_policy','gp_distribution_policy_table_check'
 LANGUAGE C IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION gp_hash_tuple_to_segment_id(tuple record, int numsegments)
+RETURNS int
+AS '$libdir/gp_distribution_policy','gp_hash_tuple_to_segment_id'
+LANGUAGE C IMMUTABLE STRICT;
+
 -- This table function forces gp_distribution_policy_table_check to run in
 -- every segment through gp_id.
 -- Every segment is checked for the correct data distribution.

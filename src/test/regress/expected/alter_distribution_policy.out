@@ -160,6 +160,49 @@ select count(*) from atsdb_ao;
 (1 row)
 
 drop table atsdb_ao;
+-- Check divergent distribution policies for partitioning.
+create table atsdb (i int, j int, k int) distributed by (i) partition by range(k)
+(start(1) end(4) every(1));
+alter table atsdb_1_prt_1 set distributed by (i);
+WARNING:  distribution policy of relation "atsdb_1_prt_1" already set to (i)
+HINT:  Use ALTER TABLE "atsdb_1_prt_1" SET WITH (REORGANIZE=TRUE) DISTRIBUTED BY (i) to force redistribution
+alter table atsdb_1_prt_2 set distributed by (j);
+ERROR:  can't set the distribution policy of "atsdb_1_prt_2"
+HINT:  Distribution policy of a partition can only be set to RANDOMLY or to the same as its parent's.
+alter table atsdb_1_prt_3 set distributed randomly;
+-- test COPY
+copy atsdb from stdin delimiter '|';
+select count(*) from atsdb;
+ count 
+-------
+    18
+(1 row)
+
+-- compare distribution: we create a table, identical to the partitioned table,
+-- and compare how the tuples have been distributed.
+create table atsdb_1 (like atsdb_1_prt_1) distributed by (i);
+copy atsdb_1 from stdin delimiter '|';
+select exists(
+  select gp_segment_id, * from atsdb where k = 1 except
+  select gp_segment_id, * from atsdb_1);
+ exists 
+--------
+ f
+(1 row)
+
+create table atsdb_2 (like atsdb_1_prt_2) distributed by (j);
+copy atsdb_2 from stdin delimiter '|';
+select exists(
+  select gp_segment_id, * from atsdb where k = 2 except
+  select gp_segment_id, * from atsdb_2);
+ exists 
+--------
+ t
+(1 row)
+
+-- Can't test randomly distributed
+-- Can't test INSERT (yet)
+drop table atsdb, atsdb_1, atsdb_2;
 -- Can't redistribute system catalogs
 alter table pg_class set distributed by (relname);
 ERROR:  permission denied: "pg_class" is a system catalog
