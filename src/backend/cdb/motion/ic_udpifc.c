@@ -3069,7 +3069,7 @@ SetupUDPIFCInterconnect_Internal(SliceTable *sliceTable)
 		 * We only keep history of constant length so that
 		 * - The history table takes only constant amount of memory.
 		 * - It is long enough so that it is almost impossible to receive 
-		 *   packets that from an IC instance is older than the first one 
+		 *   packets from an IC instance that is older than the first one 
 		 *   in the history.
 		 */
 		if (rx_control_info.cursorHistoryTable.count > (2 * CURSOR_IC_TABLE_SIZE))
