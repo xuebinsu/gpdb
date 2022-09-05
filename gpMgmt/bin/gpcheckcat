@@ -50,7 +50,7 @@ except ImportError, e:
 oidmap = {}
 
 # -------------------------------------------------------------------------------
-EXECNAME = os.path.split(__file__)[-1]
+EXECNAME = 'gpcheckcat'
 gplog.setup_tool_logging(EXECNAME, getLocalHostname(), getUserName())
 gplog.very_quiet_stdout_logging()
 logger = gplog.get_default_logger()

@@ -20,7 +20,7 @@ Output:
 
 import sys, os, getopt
 
-script_name = os.path.split(__file__)[-1]
+script_name = 'gpsys1'
 opt = {}
 opt['-a'] = False
 opt['-m'] = False

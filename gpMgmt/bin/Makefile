@@ -21,10 +21,18 @@ PROGRAMS= analyzedb gpactivatestandby gpaddmirrors gpcheckcat gpcheckperf \
 installdirs:
 	$(MKDIR_P) '$(DESTDIR)$(bindir)/lib'
 
-installprograms: installdirs
+installstandalone:
+ifeq ($(enable_standalone_utils),yes)
+	python ../setup.py build && \
+	python ../setup.py install --prefix=$(DESTDIR)$(prefix)
+endif
+
+installprograms: installdirs installstandalone
 	for file in $(PROGRAMS); do \
-		$(INSTALL_SCRIPT) $$file '$(DESTDIR)$(bindir)/'$$file ; \
-		$(PERL) $(top_builddir)/putversion '$(DESTDIR)$(bindir)/'$$file ; \
+		if [ ! -e $(DESTDIR)$(bindir)/$$file ]; then \
+			$(INSTALL_SCRIPT) $$file '$(DESTDIR)$(bindir)/'$$file ; \
+			$(PERL) $(top_builddir)/putversion '$(DESTDIR)$(bindir)/'$$file ; \
+		fi \
 	done
 	# Symlink gpcheckcat from bin to bin/lib to maintain backward compatibility
 	if [ ! -L $(DESTDIR)$(bindir)/lib/gpcheckcat  ]; then \
@@ -222,6 +230,7 @@ installcheck: installcheck-bash
 	$(MAKE) -C gpload_test $@
 
 clean distclean:
+	rm -rf build/
 	rm -rf $(PYLIB_SRC_EXT)/$(PYLINT_DIR)
 	rm -rf $(PYLIB_SRC_EXT)/$(LOGILAB_COMMON_DIR)
 	rm -rf $(PYLIB_SRC_EXT)/$(LOGILAB_ASTNG_DIR)

@@ -6,3 +6,4 @@ PSI==0.3b2
 PyYAML==3.12
 ptyprocess==0.5.2
 six==1.11.0
+cx_Freeze==5.1.1
