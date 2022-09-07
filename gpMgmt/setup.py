@@ -6,9 +6,9 @@ import os
 import sys
 from cx_Freeze import setup, Executable
 
-sys.path.insert(0, os.path.abspath(os.path.join("..", "bin")))
-sys.path.insert(0, os.path.abspath(os.path.join("..", "bin", "ext")))
-sys.path.insert(0, os.path.abspath(os.path.join("..", "bin", "ext", "pygresql")))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "bin")))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "bin", "ext")))
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "bin", "ext", "pygresql")))
 print("sys.path =", sys.path)
 
 programs_buf = []
@@ -30,11 +30,8 @@ def is_python_program(name):
 py_program_names = [name for name in program_names if is_python_program(name)]
 print("building standalone management utils...", py_program_names)
 
-build_exe_options = {"include_files": [name for name in program_names if not is_python_program(name)]}
-
 setup(
     name="gpmgmt",
     version="0.1",
-    options={"build_exe": build_exe_options},
-    executables=[Executable(name, targetName=name) for name in py_program_names],
+    executables=[Executable(name, targetName="__frozen__" + name) for name in py_program_names],
 )

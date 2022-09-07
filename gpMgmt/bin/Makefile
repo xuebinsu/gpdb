@@ -21,10 +21,16 @@ PROGRAMS= analyzedb gpactivatestandby gpaddmirrors gpcheckcat gpcheckperf \
 installdirs:
 	$(MKDIR_P) '$(DESTDIR)$(bindir)/lib'
 
-installstandalone:
+standalone_dir=./standalone/gpmgmt_bin
+installstandalone: installdirs
 ifeq ($(enable_standalone_utils),yes)
 	python ../setup.py build && \
-	python ../setup.py install --prefix=$(DESTDIR)$(prefix)
+	python ../setup.py install --skip-build --install-exe=$(libdir)/$(standalone_dir); \
+	for file_name in $(PROGRAMS); do \
+		if [ -e $(libdir)/$(standalone_dir)/__frozen__$$file_name ]; then \
+			ln -s $(libdir)/$(standalone_dir)/__frozen__$$file_name $(DESTDIR)$(bindir)/$$file_name; \
+		fi \
+	done
 endif
 
 installprograms: installdirs installstandalone

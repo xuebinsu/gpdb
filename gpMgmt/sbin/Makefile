@@ -5,11 +5,6 @@ ifneq "$(wildcard $(top_builddir)/src/Makefile.global)" ""
 include $(top_builddir)/src/Makefile.global
 endif
 
-ifeq ($(enable_standalone_utils),yes)
-install: installstandalone
-else
-install: installprograms
-endif
 
 PYCS= gpconfig_helper.pyc gpoperation.pyc gpsegstop.pyc gpcleansegmentdir.pyc \
 	gpgetstatususingtransition.pyc gpsegstart.pyc seg_update_pg_hba.pyc \
@@ -22,15 +17,25 @@ PROGRAMS= gpconfig_helper.py gpoperation.py gpsegstop.py gpcleansegmentdir.py \
 installdirs:
 	$(MKDIR_P) '$(DESTDIR)$(sbindir)'
 
-installprograms: installdirs
-	for file in $(PROGRAMS); do \
-		$(INSTALL_SCRIPT) $$file '$(DESTDIR)$(sbindir)/'$$file ; \
-		$(PERL) $(top_builddir)/putversion '$(DESTDIR)$(sbindir)/'$$file ; \
-	done
-
-installstandalone:
+standalone_dir=./standalone/gpmgmt_sbin
+installstandalone: installdirs
+ifeq ($(enable_standalone_utils),yes)
 	python ../setup.py build && \
-	python ../setup.py install --install-exe=$(DESTDIR)$(sbindir)
+	python ../setup.py install --skip-build --install-exe="$(libdir)/$(standalone_dir)"; \
+	for file_name in $(PROGRAMS); do \
+		if [ -e $(libdir)/$(standalone_dir)/__frozen__$$file_name ]; then \
+			ln -s $(libdir)/$(standalone_dir)/__frozen__$$file_name $(DESTDIR)$(sbindir)/$$file_name; \
+		fi \
+	done
+endif
+
+install: installdirs installstandalone
+	for file in $(PROGRAMS); do \
+		if [ ! -e $(DESTDIR)$(sbindir)/$$file ]; then \
+			$(INSTALL_SCRIPT) $$file '$(DESTDIR)$(sbindir)/'$$file ; \
+			$(PERL) $(top_builddir)/putversion '$(DESTDIR)$(sbindir)/'$$file ; \
+		fi \
+	done
 
 uninstall:
 	for file in $(PROGRAMS); do \
