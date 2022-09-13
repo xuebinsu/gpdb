@@ -3,6 +3,9 @@
 import os
 import json
 
+import sys
+sys.path.insert(0, os.path.join(os.environ["GPHOME"], "lib", "python"))
+
 from gppylib.gpparseopts import OptParser, OptChecker
 from gppylib.mainUtils import addStandardLoggingAndHelpOptions
 from collections import defaultdict
