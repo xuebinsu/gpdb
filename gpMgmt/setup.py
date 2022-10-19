@@ -10,8 +10,6 @@ sys.path = [
     os.path.join(gpmgmt_dir, "bin", "ext"),
     os.path.join(gpmgmt_dir, "bin"),
 ] + sys.path
-print("sys.path =", sys.path)
-# exit()
 
 programs_buf = []
 makefile = open("Makefile")
@@ -20,6 +18,7 @@ for line in makefile:
         programs_buf.append(line)
         if "\\" not in line:
             break
+makefile.close()
 
 program_names = [
     name
