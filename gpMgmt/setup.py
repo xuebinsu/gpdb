@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 #
+# The thought process:
+# 1. Find a tool that can package all the dependencies of a Python script
+# (cx_Freeze in this case),
+# 2. Help it find all the dependencies of each our management util by
+# setting `sys.path`, and
+# 3. Modify config and Makefiles accordingly to use the packaging tool.
+#
 # Steps to build and install GPDB with standalone utils:
 # 1. `cd` to the root directory of the GPDB source code.
 # 2. `pip3 install --user -r python-developer-dependencies.txt`
