@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 #
-# After the utils are built into standalone binaries, __file__ will no longer
+# Steps to build and install GPDB with standalone utils:
+# 1. `cd` to the root directory of the GPDB source code.
+# 2. `pip3 install --user -r python-developer-dependencies.txt`
+# 3. `./configure --enable-standalone-utils <other_options_you_want>`
+# 4. `make install`
+# After installation completes, you can use the standalone utils in exactly
+# the same way as before.
+#
+# NOTE:
+# - After the utils are built into standalone binaries, __file__ will no longer
 # be valid. Thus, we need to replace them with appropriate script names or
 # paths.
 
