@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+#
+# After the utils are built into standalone binaries, __file__ will no longer
+# be valid. Thus, we need to replace them with appropriate script names or
+# paths.
 
 import os
 import sys
