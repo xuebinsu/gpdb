@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 #
+# setup.py
+# This file specifies how a Python package is built and installed. This is
+# required by setuptools and its descendants including cx_Freeze.
+#
 # The thought process:
 # 1. Find a tool that can package all the dependencies of a Python script
 # (cx_Freeze in this case),
