@@ -257,7 +257,7 @@ PLy_initialize(void)
 	{	
 		/* Preinitialize Set Python Interpreter Path*/
 		char plpython3_prefix[100];
-		snprintf(plpython3_prefix, sizeof(plpython3_prefix), "/private/tmp/plpython3/%s", plpython3_virtual_env);
+		snprintf(plpython3_prefix, sizeof(plpython3_prefix), "/tmp/plpython3/%s", plpython3_virtual_env);
 
 		char plpython3_executable[100];
 		snprintf(plpython3_executable, sizeof(plpython3_executable), "%s/bin/python", plpython3_prefix);
