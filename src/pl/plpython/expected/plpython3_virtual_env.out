@@ -1,0 +1,121 @@
+SELECT plpython3.create_virtual_env('venv') \gset
+SET plpython3.virtual_env = :'create_virtual_env';
+CREATE OR REPLACE FUNCTION test_path_added(virtual_env_name text) 
+RETURNS TEXT AS $$
+    import sys
+
+    plpy.notice('PYTHON VIRTUAL ENV sys.prefix=' + str(sys.prefix))
+    plpy.notice('PYTHON VIRTUAL ENV sys.exec_prefix=' + str(sys.exec_prefix))
+    plpy.notice('PYTHON VIRTUAL ENV sys.executable=' + str(sys.executable))
+    plpy.notice('PYTHON VIRTUAL ENV sys.base_prefix=' + str(sys.base_prefix))
+    plpy.notice('PYTHON VIRTUAL ENV sys.base_exec_prefix=' + str(sys.base_exec_prefix))
+    plpy.notice('PYTHON VIRTUAL ENV sys.base_executable=' + str(sys._base_executable))
+    plpy.notice('PYTHON VIRTUAL ENV sys.home=' + str(sys._home))
+
+    assert sys.prefix == f"/tmp/plpython3/{virtual_env_name}"
+    assert sys.exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
+    assert sys.executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
+    assert sys.base_prefix == f"/tmp/plpython3/{virtual_env_name}"
+    assert sys.base_exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
+    assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
+    
+    return "SUCCESS"
+$$ language plpython3u;
+WITH env AS (
+  SELECT :'create_virtual_env' AS virtual_env_name
+),
+result AS (
+  SELECT test_path_added(virtual_env_name) FROM env
+  UNION ALL
+  SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env
+)
+SELECT DISTINCT * FROM result;
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice1 127.0.0.1:7003 pid=920508)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice1 127.0.0.1:7004 pid=920507)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice1 127.0.0.1:7002 pid=920506)
+ test_path_added 
+-----------------
+ SUCCESS
+(1 row)
+
+SET plpython3.virtual_env = :'create_virtual_env';
+ERROR:  SET PYTHON Virtual Env failed, the GUC value can only be changed before initializing the python interpreter.
+CREATE OR REPLACE FUNCTION test_import(name TEXT) 
+RETURNS text AS $$
+    import importlib
+    importlib.invalidate_caches()
+    importlib.import_module(name)
+    return 'SUCCESS'
+$$ language plpython3u;
+SELECT DISTINCT * FROM
+(
+    SELECT test_import('numpy')
+    UNION ALL
+    SELECT test_import('numpy') from gp_dist_random('gp_id')
+) t;
+ERROR:  ModuleNotFoundError: No module named 'numpy'
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "test_import", line 4, in <module>
+    importlib.import_module(name)
+  PL/Python function "test_import", line 126, in import_module
+  PL/Python function "test_import", line 1029, in _gcd_import
+  PL/Python function "test_import", line 1006, in _find_and_load
+  PL/Python function "test_import", line 983, in _find_and_load_unlocked
+PL/Python function "test_import"
+CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
+RETURNS text AS $$
+    import pip
+    pip.main(['install', name])
+
+    import importlib
+    importlib.invalidate_caches()
+    importlib.import_module(name)
+    return 'SUCCESS'
+$$ language plpython3u;
+SELECT DISTINCT * FROM
+(
+    SELECT test_pip_install('numpy')
+    UNION ALL
+    SELECT test_pip_install('numpy') from gp_dist_random('gp_id')
+) t;
+ test_pip_install 
+------------------
+ SUCCESS
+(1 row)
+
+SELECT DISTINCT * FROM
+(
+    SELECT test_import('numpy')
+    UNION ALL
+    SELECT test_import('numpy') from gp_dist_random('gp_id')
+) t;
+ test_import 
+-------------
+ SUCCESS
+(1 row)
+
