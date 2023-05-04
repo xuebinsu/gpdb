@@ -209,7 +209,6 @@ create_virtual_env(PG_FUNCTION_ARGS)
 static void
 PLy_initialize(void)
 {
-	static bool inited = false;
 
 	/*
 	 * Check for multiple Python libraries before actively doing anything with

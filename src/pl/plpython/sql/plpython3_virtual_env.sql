@@ -26,10 +26,15 @@ $$ language plpython3u;
 
 WITH env AS (
   SELECT :'create_virtual_env' AS virtual_env_name
+),
+result AS (
+  SELECT test_path_added(virtual_env_name) FROM env
+  UNION ALL
+  SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env
 )
-SELECT test_path_added(virtual_env_name) FROM env
-UNION ALL
-SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env;
+SELECT DISTINCT * FROM result;
+
+SET plpython3.virtual_env = :'create_virtual_env';
 
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
@@ -38,9 +43,12 @@ RETURNS text AS $$
     importlib.import_module(name)
     return 'SUCCESS'
 $$ language plpython3u;
-SELECT test_import('numpy')
-UNION ALL
-SELECT test_import('numpy') from gp_dist_random('gp_id');
+SELECT DISTINCT * FROM
+(
+    SELECT test_import('numpy')
+    UNION ALL
+    SELECT test_import('numpy') from gp_dist_random('gp_id')
+) t;
 
 CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
 RETURNS text AS $$
@@ -53,10 +61,16 @@ RETURNS text AS $$
     return 'SUCCESS'
 $$ language plpython3u;
 
-SELECT test_pip_install('numpy')
-UNION ALL
-SELECT test_pip_install('numpy') from gp_dist_random('gp_id');
+SELECT DISTINCT * FROM
+(
+    SELECT test_pip_install('numpy')
+    UNION ALL
+    SELECT test_pip_install('numpy') from gp_dist_random('gp_id')
+) t;
 
-SELECT test_import('numpy')
-UNION ALL
-SELECT test_import('numpy') from gp_dist_random('gp_id');
+SELECT DISTINCT * FROM
+(
+    SELECT test_import('numpy')
+    UNION ALL
+    SELECT test_import('numpy') from gp_dist_random('gp_id')
+) t;
