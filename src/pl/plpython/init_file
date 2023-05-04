@@ -24,4 +24,5 @@ s/ \(plpython\.c:\d+\)//
 # of messages.
 -- start_matchignore
 m/^(?:HINT|NOTICE):\s+.+\'DISTRIBUTED BY\' clause.*/
+m/^(?:NOTICE):\s+.+PYTHON VIRTUAL ENV sys.*/
 -- end_matchignore
