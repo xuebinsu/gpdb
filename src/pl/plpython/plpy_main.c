@@ -90,18 +90,7 @@ static bool inited = false;
 
 /* GUC variables */
 #if PY_MAJOR_VERSION >= 3
-static char *plpython3_path = NULL;
 static char *plpython3_virtual_env = NULL;
-
-static bool
-plpython3_check_python_path(char **newval, void **extra, GucSource source) {
-	if (inited)
-	{
-		GUC_check_errmsg("SET PYTHONPATH failed, the GUC value can only be changed before initializing the python interpreter.");
-		return false;
-	}
-	return true;
-}
 
 static bool
 plpython3_check_python_virtual_env(char **newval, void **extra, GucSource source) {
@@ -147,16 +136,6 @@ _PG_init(void)
 	cancel_pending_hook = PLy_handle_cancel_interrupt;
 
 #if PY_MAJOR_VERSION >= 3
-	DefineCustomStringVariable("plpython3.python_path",
-							gettext_noop("PYTHONPATH for plpython3."),
-							NULL,
-							&plpython3_path,
-							"", // default path need to set empty for init
-							PGC_USERSET,
-							GUC_GPDB_NEED_SYNC,
-							plpython3_check_python_path,
-							NULL,
-							NULL);
 
 	DefineCustomStringVariable("plpython3.virtual_env",
 							gettext_noop("Virtual Env for plpython3."),
@@ -177,6 +156,7 @@ PG_FUNCTION_INFO_V1(create_virtual_env);
 Datum
 create_virtual_env(PG_FUNCTION_ARGS)
 {
+
 	unsetenv("PYTHONPATH");
 	unsetenv("PYTHONHOME");
 
@@ -222,23 +202,7 @@ PLy_initialize(void)
 		ereport(FATAL,
 				(errmsg("multiple Python libraries are present in session"),
 				 errdetail("Only one Python major version can be used in one session.")));
-#if PY_MAJOR_VERSION >= 3
-	/* PYTHONPATH and PYTHONHOME has been set to GPDB's python2.7 in Postmaster when
-	 * gpstart. So for plpython3u, we need to unset PYTHONPATH and PYTHONHOME.
-	 * if user set PYTHONPATH then we set it in the env
-	 */
-	// if (plpython3_path && *plpython3_path)
-	// {
-	// 	setenv("PYTHONPATH", plpython3_path, 1);
-	// }
-	// else
-	// {
-	// 	unsetenv("PYTHONPATH");
-	// }
-	unsetenv("PYTHONPATH");
-	unsetenv("PYTHONHOME");
 
-#endif
 	/* The rest should only be done once per session */
 	if (inited)
 		return;
@@ -253,8 +217,13 @@ PLy_initialize(void)
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
 	if (plpython3_virtual_env != NULL && *plpython3_virtual_env != '\0')
 	{	
+
+		unsetenv("PYTHONPATH");
+		unsetenv("PYTHONHOME");
+		
 		/* Preinitialize Set Python Interpreter Path*/
 		char plpython3_prefix[100];
 		snprintf(plpython3_prefix, sizeof(plpython3_prefix), "/tmp/plpython3/%s", plpython3_virtual_env);
@@ -284,7 +253,9 @@ PLy_initialize(void)
 	}
 	else
 		Py_Initialize();
-	//Py_Initialize();
+#else
+	Py_Initialize();
+#endif
 
 #if PY_MAJOR_VERSION >= 3
 	PyImport_ImportModule("plpy");
