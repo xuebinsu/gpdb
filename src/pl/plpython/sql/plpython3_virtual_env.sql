@@ -39,9 +39,14 @@ SET plpython3.virtual_env = :'create_virtual_env';
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
     import importlib
-    importlib.invalidate_caches()
-    importlib.import_module(name)
-    return 'SUCCESS'
+    ret = importlib.import_module(name)
+    import re
+    match = re.search(r"<module 'numpy' from '/tmp/plpython3/venv_", str(ret))
+    if match:
+        sub_string = match.group()
+        return sub_string
+    return ret
+
 $$ language plpython3u;
 SELECT DISTINCT * FROM
 (
@@ -51,14 +56,13 @@ SELECT DISTINCT * FROM
 ) t;
 
 CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
-RETURNS text AS $$
+RETURNS int AS $$
     import pip
-    pip.main(['install', name])
+    ret = pip.main(['install', name])
 
     import importlib
     importlib.invalidate_caches()
-    importlib.import_module(name)
-    return 'SUCCESS'
+    return ret
 $$ language plpython3u;
 
 SELECT DISTINCT * FROM

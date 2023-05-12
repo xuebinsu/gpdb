@@ -30,34 +30,34 @@ result AS (
   SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env
 )
 SELECT DISTINCT * FROM result;
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29e7bcadccc84
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29e7bcadccc84
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29e7bcadccc84
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29e7bcadccc84
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python
 NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice1 127.0.0.1:7003 pid=920508)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ddc95d2e260  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice1 127.0.0.1:7004 pid=920507)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ddc95d2e260/bin/python  (seg0 slice1 127.0.0.1:7002 pid=920506)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice1 127.0.0.1:7002 pid=920506)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice1 127.0.0.1:7002 pid=649314)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice1 127.0.0.1:7004 pid=649313)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29e7bcadccc84  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29e7bcadccc84/bin/python  (seg1 slice1 127.0.0.1:7003 pid=649312)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice1 127.0.0.1:7003 pid=649312)
  test_path_added 
 -----------------
  SUCCESS
@@ -68,9 +68,14 @@ ERROR:  SET PYTHON Virtual Env failed, the GUC value can only be changed before 
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
     import importlib
-    importlib.invalidate_caches()
-    importlib.import_module(name)
-    return 'SUCCESS'
+    ret = importlib.import_module(name)
+    import re
+    match = re.search(r"<module 'numpy' from '/tmp/plpython3/venv_", str(ret))
+    if match:
+        sub_string = match.group()
+        return sub_string
+    return ret
+
 $$ language plpython3u;
 SELECT DISTINCT * FROM
 (
@@ -80,22 +85,21 @@ SELECT DISTINCT * FROM
 ) t;
 ERROR:  ModuleNotFoundError: No module named 'numpy'
 CONTEXT:  Traceback (most recent call last):
-  PL/Python function "test_import", line 4, in <module>
-    importlib.import_module(name)
+  PL/Python function "test_import", line 3, in <module>
+    ret = importlib.import_module(name)
   PL/Python function "test_import", line 126, in import_module
   PL/Python function "test_import", line 1029, in _gcd_import
   PL/Python function "test_import", line 1006, in _find_and_load
   PL/Python function "test_import", line 983, in _find_and_load_unlocked
 PL/Python function "test_import"
 CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
-RETURNS text AS $$
+RETURNS int AS $$
     import pip
-    pip.main(['install', name])
+    ret = pip.main(['install', name])
 
     import importlib
     importlib.invalidate_caches()
-    importlib.import_module(name)
-    return 'SUCCESS'
+    return ret
 $$ language plpython3u;
 SELECT DISTINCT * FROM
 (
@@ -105,7 +109,7 @@ SELECT DISTINCT * FROM
 ) t;
  test_pip_install 
 ------------------
- SUCCESS
+                0
 (1 row)
 
 SELECT DISTINCT * FROM
@@ -114,8 +118,8 @@ SELECT DISTINCT * FROM
     UNION ALL
     SELECT test_import('numpy') from gp_dist_random('gp_id')
 ) t;
- test_import 
--------------
- SUCCESS
+                test_import                 
+--------------------------------------------
+ <module 'numpy' from '/tmp/plpython3/venv_
 (1 row)
 
