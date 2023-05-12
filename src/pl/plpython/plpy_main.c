@@ -32,6 +32,9 @@
 #include "plpy_subxactobject.h"
 
 #include <stdlib.h>
+#include "commands/copy.h"
+#include "storage/execute_pipe.h"
+#include "pg_config_manual.h"
 
 /*
  * exported functions
@@ -89,7 +92,6 @@ static bool inited = false;
 
 
 /* GUC variables */
-#if PY_MAJOR_VERSION >= 3
 static char *plpython3_virtual_env = NULL;
 
 static bool
@@ -108,7 +110,6 @@ plpython3_check_python_virtual_env(char **newval, void **extra, GucSource source
 	}
 	return true;
 }
-#endif
 
 void
 _PG_init(void)
@@ -135,8 +136,6 @@ _PG_init(void)
 	prev_cancel_pending_hook = cancel_pending_hook;
 	cancel_pending_hook = PLy_handle_cancel_interrupt;
 
-#if PY_MAJOR_VERSION >= 3
-
 	DefineCustomStringVariable("plpython3.virtual_env",
 							gettext_noop("Virtual Env for plpython3."),
 							NULL,
@@ -147,18 +146,50 @@ _PG_init(void)
 							plpython3_check_python_virtual_env,
 							NULL,
 							NULL);
-#endif
 	pg_bindtextdomain(TEXTDOMAIN);
 }
 
-PG_FUNCTION_INFO_V1(create_virtual_env);
+static void
+close_program_pipes(ProgramPipes program_pipes, FILE* file)
+{
 
+	int ret = 0;
+	StringInfoData sinfo;
+	initStringInfo(&sinfo);
+
+	fclose(file);
+	file = NULL;
+
+	ret = pclose_with_stderr(program_pipes.pid, program_pipes.pipes, &sinfo);
+
+	if (ret == 0)
+	{
+		return;
+	}
+
+	if (ret == -1)
+	{
+		/* pclose()/wait4() ended with an error; errno should be valid */
+		ereport(ERROR,
+				(errcode_for_file_access(),
+				errmsg("can not close pipe: %m")));
+	}
+	else if (!WIFSIGNALED(ret))
+	{
+		/*
+		* pclose() returned the process termination state.
+		*/
+		ereport(ERROR,
+				(errcode(ERRCODE_SQL_ROUTINE_EXCEPTION),
+				errmsg("command error message: %s", sinfo.data)));
+	}	
+}
+
+
+PG_FUNCTION_INFO_V1(create_virtual_env);
 Datum
 create_virtual_env(PG_FUNCTION_ARGS)
 {
-
-	unsetenv("PYTHONPATH");
-	unsetenv("PYTHONHOME");
 
 	char *creator = TextDatumGetCString(PG_GETARG_TEXT_P(0));
 	if (strncmp(creator, "venv", sizeof("venv")) != 0)
@@ -170,13 +201,75 @@ create_virtual_env(PG_FUNCTION_ARGS)
 	snprintf(virtual_env_name, sizeof(virtual_env_name), "venv_%lx", current_ts);
 
 	// Create a venv using os.system 's C function
-	char creation_cmd[64];
+	// char unset_env_vars[] = "unset PYTHONHOME && unset PYTHONPATH";
+	char unset_env_vars[] = "true";
+	char creation_cmd[64 + sizeof(unset_env_vars)];
 	snprintf(creation_cmd, sizeof(creation_cmd),
-			"python3 -m venv /tmp/plpython3/%s", virtual_env_name);
+			"%s && python3.%d -m venv /tmp/plpython3/%s", unset_env_vars, PY_MINOR_VERSION, virtual_env_name);
 
-	int ret = system(creation_cmd);
-	if (ret != 0)
-		elog(ERROR, "Failed to create virtual env: %d", ret);
+	elog(LOG, creation_cmd);
+	// int ret = system(creation_cmd);
+
+	int save_errno;
+	pqsigfunc save_SIGPIPE;
+
+	ProgramPipes program_pipes;
+	program_pipes.pid = -1;
+	program_pipes.pipes[0] = -1;
+	program_pipes.pipes[1] = -1;
+	program_pipes.shexec = creation_cmd;
+
+	save_SIGPIPE = pqsignal(SIGPIPE, SIG_DFL);
+
+	/* execute the user command */
+	program_pipes.pid = popen_with_stderr(program_pipes.pipes, program_pipes.shexec, false);
+	save_errno = errno;
+
+	/* Restore the SIGPIPE handler */
+	pqsignal(SIGPIPE, save_SIGPIPE);
+
+	if (program_pipes.pid == -1)
+	{
+		errno = save_errno;
+		ereport(ERROR,
+				(errcode(ERRCODE_INSUFFICIENT_RESOURCES),
+				 errmsg("can not start command: %s", program_pipes.shexec)));
+	}
+
+	FILE *file = fdopen(program_pipes.pipes[0], PG_BINARY_R);
+	for (;;) 
+	{	
+		char databuf[256];
+		size_t bytesread = fread(databuf, 1, sizeof(databuf), file);
+		if (bytesread < 0) 
+			elog(ERROR, "Reading error");
+
+		if (feof(file))
+		{
+			close_program_pipes(program_pipes, file);
+			break;
+		}
+		if (ferror(file))
+		{
+			int olderrno = errno;
+
+			close_program_pipes(program_pipes, file);
+
+			/*
+				* If close_program_pipes() didn't throw an error,
+				* the program terminated normally, but closed the
+				* pipe first. Restore errno, and throw an error.
+				*/
+			errno = olderrno;
+
+			ereport(ERROR,
+					(errcode_for_file_access(),
+						errmsg("could not read from program: %m")));
+		}
+	}
+
+	/* if (ret != 0)
+		elog(ERROR, "Failed to create virtual env: %d", errno);*/
 	
 	PG_RETURN_TEXT_P(CStringGetTextDatum(virtual_env_name));
 }
@@ -211,32 +304,37 @@ PLy_initialize(void)
 	PyImport_AppendInittab("plpy", PyInit_plpy);
 #endif
 
-
-    PyStatus status;
-
-    PyConfig config;
-    PyConfig_InitPythonConfig(&config);
-
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
 	if (plpython3_virtual_env != NULL && *plpython3_virtual_env != '\0')
 	{	
+
+		PyStatus status;
+
+		PyConfig config;
+		PyConfig_InitPythonConfig(&config);
 
 		unsetenv("PYTHONPATH");
 		unsetenv("PYTHONHOME");
 		
 		/* Preinitialize Set Python Interpreter Path*/
-		char plpython3_prefix[100];
+		char plpython3_prefix[MAXPGPATH];
 		snprintf(plpython3_prefix, sizeof(plpython3_prefix), "/tmp/plpython3/%s", plpython3_virtual_env);
 
-		char plpython3_executable[100];
+		char plpython3_executable[MAXPGPATH];
 		snprintf(plpython3_executable, sizeof(plpython3_executable), "%s/bin/python", plpython3_prefix);
 		
 		/* Set the executable. Implicitly preinitialize Python. */
 		status = PyConfig_SetBytesString(&config, &config.executable,
 									plpython3_executable);
 
+		if (status.err_msg)
+			PLy_elog(ERROR, "%s", status.err_msg);
+
 		status = PyConfig_SetBytesString(&config, &config.prefix,
 									plpython3_prefix);
+
+		if (status.err_msg)
+			PLy_elog(ERROR, "%s", status.err_msg);
 
 		status = PyConfig_SetBytesString(&config, &config.exec_prefix,
 									plpython3_prefix);
