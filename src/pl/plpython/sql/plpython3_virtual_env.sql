@@ -48,6 +48,7 @@ RETURNS text AS $$
     return ret
 
 $$ language plpython3u;
+
 SELECT DISTINCT * FROM
 (
     SELECT test_import('numpy')
@@ -56,13 +57,17 @@ SELECT DISTINCT * FROM
 ) t;
 
 CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
-RETURNS int AS $$
-    import pip
-    ret = pip.main(['install', name])
+RETURNS text AS $$
+import contextlib
+import importlib
+import io
+import pip
 
-    import importlib
+with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(stdout):
+    pip.main(['install', name])
     importlib.invalidate_caches()
-    return ret
+
+return stdout.getvalue()
 $$ language plpython3u;
 
 SELECT DISTINCT * FROM
@@ -71,6 +76,26 @@ SELECT DISTINCT * FROM
     UNION ALL
     SELECT test_pip_install('numpy') from gp_dist_random('gp_id')
 ) t;
+
+CREATE OR REPLACE FUNCTION test_pip_show(name TEXT) 
+RETURNS text AS $$
+import contextlib
+import io
+import pip
+
+with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(stdout):
+    pip.main(['show', name])
+
+return stdout.getvalue()
+$$ language plpython3u;
+
+SELECT DISTINCT * FROM
+(
+    SELECT test_pip_show('numpy')
+    UNION ALL
+    SELECT test_pip_show('numpy') from gp_dist_random('gp_id')
+) t;
+
 
 SELECT DISTINCT * FROM
 (
