@@ -2,24 +2,24 @@ SELECT plpython3.create_virtual_env('venv') \gset
 SET plpython3.virtual_env = :'create_virtual_env';
 CREATE OR REPLACE FUNCTION test_path_added(virtual_env_name text) 
 RETURNS TEXT AS $$
-    import sys
+import sys
 
-    plpy.notice('PYTHON VIRTUAL ENV sys.prefix=' + str(sys.prefix))
-    plpy.notice('PYTHON VIRTUAL ENV sys.exec_prefix=' + str(sys.exec_prefix))
-    plpy.notice('PYTHON VIRTUAL ENV sys.executable=' + str(sys.executable))
-    plpy.notice('PYTHON VIRTUAL ENV sys.base_prefix=' + str(sys.base_prefix))
-    plpy.notice('PYTHON VIRTUAL ENV sys.base_exec_prefix=' + str(sys.base_exec_prefix))
-    plpy.notice('PYTHON VIRTUAL ENV sys.base_executable=' + str(sys._base_executable))
-    plpy.notice('PYTHON VIRTUAL ENV sys.home=' + str(sys._home))
+plpy.notice('PYTHON VIRTUAL ENV sys.prefix=' + str(sys.prefix))
+plpy.notice('PYTHON VIRTUAL ENV sys.exec_prefix=' + str(sys.exec_prefix))
+plpy.notice('PYTHON VIRTUAL ENV sys.executable=' + str(sys.executable))
+plpy.notice('PYTHON VIRTUAL ENV sys.base_prefix=' + str(sys.base_prefix))
+plpy.notice('PYTHON VIRTUAL ENV sys.base_exec_prefix=' + str(sys.base_exec_prefix))
+plpy.notice('PYTHON VIRTUAL ENV sys.base_executable=' + str(sys._base_executable))
+plpy.notice('PYTHON VIRTUAL ENV sys.home=' + str(sys._home))
 
-    assert sys.prefix == f"/tmp/plpython3/{virtual_env_name}"
-    assert sys.exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
-    assert sys.executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
-    assert sys.base_prefix == f"/tmp/plpython3/{virtual_env_name}"
-    assert sys.base_exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
-    assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
-    
-    return "SUCCESS"
+assert sys.prefix == f"/tmp/plpython3/{virtual_env_name}"
+assert sys.exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
+assert sys.executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
+assert sys.base_prefix == f"/tmp/plpython3/{virtual_env_name}"
+assert sys.base_exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
+assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
+
+return "SUCCESS"
 $$ language plpython3u;
 WITH env AS (
   SELECT :'create_virtual_env' AS virtual_env_name
@@ -30,34 +30,34 @@ result AS (
   SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env
 )
 SELECT DISTINCT * FROM result;
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ecb70833db4
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ecb70833db4
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ecb70833db4/bin/python
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ecb70833db4
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ecb70833db4
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ecb70833db4/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29eda5e5f5f13
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29eda5e5f5f13
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python
 NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ecb70833db4  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice1 127.0.0.1:7003 pid=807138)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ecb70833db4  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice1 127.0.0.1:7002 pid=807136)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29ecb70833db4  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29ecb70833db4  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29ecb70833db4/bin/python  (seg2 slice1 127.0.0.1:7004 pid=807137)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice1 127.0.0.1:7004 pid=807137)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice1 127.0.0.1:7003 pid=1626621)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29eda5e5f5f13  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29eda5e5f5f13/bin/python  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice1 127.0.0.1:7004 pid=1626622)
  test_path_added 
 -----------------
  SUCCESS
@@ -67,15 +67,8 @@ SET plpython3.virtual_env = :'create_virtual_env';
 ERROR:  SET PYTHON Virtual Env failed, the GUC value can only be changed before initializing the python interpreter.
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
-    import importlib
-    ret = importlib.import_module(name)
-    import re
-    match = re.search(r"<module 'numpy' from '/tmp/plpython3/venv_", str(ret))
-    if match:
-        sub_string = match.group()
-        return sub_string
-    return ret
-
+import importlib
+return importlib.import_module(name)
 $$ language plpython3u;
 SELECT DISTINCT * FROM
 (
@@ -86,89 +79,49 @@ SELECT DISTINCT * FROM
 ERROR:  ModuleNotFoundError: No module named 'numpy'
 CONTEXT:  Traceback (most recent call last):
   PL/Python function "test_import", line 3, in <module>
-    ret = importlib.import_module(name)
+    return importlib.import_module(name)
   PL/Python function "test_import", line 126, in import_module
   PL/Python function "test_import", line 1029, in _gcd_import
   PL/Python function "test_import", line 1006, in _find_and_load
   PL/Python function "test_import", line 983, in _find_and_load_unlocked
 PL/Python function "test_import"
-CREATE OR REPLACE FUNCTION test_pip_install(name TEXT) 
+CREATE OR REPLACE FUNCTION pip_install(name TEXT) 
 RETURNS text AS $$
-import contextlib
-import importlib
-import io
-import pip
+import os
+import sys
+from pathlib import PurePath
+from subprocess import check_output, STDOUT
 
-with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(stdout):
-    pip.main(['install', name])
-    importlib.invalidate_caches()
-
-return stdout.getvalue()
+try:
+    lock_path = PurePath(sys.prefix) / "pip.lock"
+    open(lock_path, "x")
+    stdout = check_output([sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
+    os.remove(lock_path)
+    return stdout
+except FileExistsError as e:
+    plpy.notice(e)
+    return None
 $$ language plpython3u;
-SELECT DISTINCT * FROM
-(
-    SELECT test_pip_install('numpy')
+WITH pip_install AS (
+    SELECT pip_install('numpy') AS stdout
     UNION ALL
-    SELECT test_pip_install('numpy') from gp_dist_random('gp_id')
-) t;
-                                                      test_pip_install                                                      
+    SELECT pip_install('numpy') AS stdout FROM gp_dist_random('gp_id')
+)
+SELECT * FROM pip_install WHERE stdout IS NOT NULL;
+NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29eda5e5f5f13/pip.lock'  (seg0 slice1 127.0.0.1:7002 pid=1626623)
+NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29eda5e5f5f13/pip.lock'  (seg2 slice1 127.0.0.1:7004 pid=1626622)
+                                                           stdout                                                           
 ----------------------------------------------------------------------------------------------------------------------------
- WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.                        +
- Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.                             +
- To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.                                +
  Collecting numpy                                                                                                          +
    Using cached numpy-1.24.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.3 MB)                            +
  Installing collected packages: numpy                                                                                      +
  Successfully installed numpy-1.24.3                                                                                       +
  WARNING: You are using pip version 20.2.4; however, version 23.1.2 is available.                                          +
- You should consider upgrading via the '/tmp/plpython3/venv_29ecb70833db4/bin/python -m pip install --upgrade pip' command.+
+ You should consider upgrading via the '/tmp/plpython3/venv_29eda5e5f5f13/bin/python -m pip install --upgrade pip' command.+
  
- WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.                        +
- Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.                             +
- To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.                                +
- Requirement already satisfied: numpy in /tmp/plpython3/venv_29ecb70833db4/lib/python3.9/site-packages (1.24.3)            +
+ Requirement already satisfied: numpy in /tmp/plpython3/venv_29eda5e5f5f13/lib/python3.9/site-packages (1.24.3)            +
  WARNING: You are using pip version 20.2.4; however, version 23.1.2 is available.                                          +
- You should consider upgrading via the '/tmp/plpython3/venv_29ecb70833db4/bin/python -m pip install --upgrade pip' command.+
- 
-(2 rows)
-
-CREATE OR REPLACE FUNCTION test_pip_show(name TEXT) 
-RETURNS text AS $$
-import contextlib
-import io
-import pip
-
-with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(stdout):
-    pip.main(['show', name])
-
-return stdout.getvalue()
-$$ language plpython3u;
-SELECT DISTINCT * FROM
-(
-    SELECT test_pip_show('numpy')
-    UNION ALL
-    SELECT test_pip_show('numpy') from gp_dist_random('gp_id')
-) t;
-                                           test_pip_show                                            
-----------------------------------------------------------------------------------------------------
- WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.+
- Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.     +
- To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.        +
- Name: numpy                                                                                       +
- Version: 1.24.3                                                                                   +
- Summary: Fundamental package for array computing in Python                                        +
- Home-page: https://www.numpy.org                                                                  +
- Author: Travis E. Oliphant et al.                                                                 +
- Author-email: None                                                                                +
- License: BSD-3-Clause                                                                             +
- Location: /tmp/plpython3/venv_29ecb70833db4/lib/python3.9/site-packages                           +
- Requires:                                                                                         +
- Required-by:                                                                                      +
- 
- WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.+
- Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.     +
- To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.        +
- WARNING: Package(s) not found: numpy                                                              +
+ You should consider upgrading via the '/tmp/plpython3/venv_29eda5e5f5f13/bin/python -m pip install --upgrade pip' command.+
  
 (2 rows)
 
@@ -178,8 +131,8 @@ SELECT DISTINCT * FROM
     UNION ALL
     SELECT test_import('numpy') from gp_dist_random('gp_id')
 ) t;
-                test_import                 
---------------------------------------------
- <module 'numpy' from '/tmp/plpython3/venv_
+                                                test_import                                                
+-----------------------------------------------------------------------------------------------------------
+ <module 'numpy' from '/tmp/plpython3/venv_29eda5e5f5f13/lib64/python3.9/site-packages/numpy/__init__.py'>
 (1 row)
 
