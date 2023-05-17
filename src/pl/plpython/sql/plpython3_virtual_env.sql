@@ -24,15 +24,11 @@ assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
 return "SUCCESS"
 $$ language plpython3u;
 
-WITH env AS (
-  SELECT :'create_virtual_env' AS virtual_env_name
-),
-result AS (
-  SELECT test_path_added(virtual_env_name) FROM env
-  UNION ALL
-  SELECT test_path_added(virtual_env_name) FROM gp_dist_random('gp_id'), env
-)
-SELECT DISTINCT * FROM result;
+SELECT DISTINCT * FROM (
+    SELECT test_path_added(:'create_virtual_env')
+    UNION ALL
+    SELECT test_path_added(:'create_virtual_env') FROM gp_dist_random('gp_id')
+) t;
 
 SET plpython3.virtual_env = :'create_virtual_env';
 
@@ -70,9 +66,17 @@ $$ language plpython3u;
 WITH pip_install AS (
     SELECT pip_install('numpy') AS stdout
     UNION ALL
-    SELECT pip_install('numpy') AS stdout FROM gp_dist_random('gp_id')
+    SELECT pip_install('numpy') AS stdout
+    FROM gp_dist_random('gp_id')
+), install_error AS (
+    SELECT * FROM pip_install
+    WHERE NOT (
+        (stdout IS NULL) OR 
+        (stdout LIKE '%Successfully installed numpy%') OR
+        (stdout LIKE 'Requirement already satisfied: numpy%')
+    )
 )
-SELECT * FROM pip_install WHERE stdout IS NOT NULL;
+SELECT NOT EXISTS (SELECT * FROM install_error);
 
 SELECT DISTINCT * FROM
 (
