@@ -22,38 +22,38 @@ assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
 return "SUCCESS"
 $$ language plpython3u;
 SELECT DISTINCT * FROM (
-  SELECT test_path_added(:'create_virtual_env')
-  UNION ALL
-  SELECT test_path_added(:'create_virtual_env') FROM gp_dist_random('gp_id')
+    SELECT test_path_added(:'create_virtual_env')
+    UNION ALL
+    SELECT test_path_added(:'create_virtual_env') FROM gp_dist_random('gp_id')
 ) t;
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edd9991265c
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edd9991265c
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edd9991265c/bin/python
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edd9991265c
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edd9991265c
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edd9991265c/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python
 NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edd9991265c  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edd9991265c  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edd9991265c  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edd9991265c  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice2 127.0.0.1:7003 pid=1672574)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edd9991265c  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice2 127.0.0.1:7002 pid=1672576)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edd9991265c  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edd9991265c  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edd9991265c/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1672575)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice2 127.0.0.1:7004 pid=1672575)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice2 127.0.0.1:7002 pid=1675197)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice2 127.0.0.1:7003 pid=1675195)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1675196)
+NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice2 127.0.0.1:7004 pid=1675196)
  test_path_added 
 -----------------
  SUCCESS
@@ -112,8 +112,8 @@ WITH pip_install AS (
     )
 )
 SELECT NOT EXISTS (SELECT * FROM install_error);
-NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edd9991265c/pip.lock'  (seg1 slice2 127.0.0.1:7003 pid=1672568)
-NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edd9991265c/pip.lock'  (seg2 slice2 127.0.0.1:7004 pid=1672570)
+NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edda60f7714/pip.lock'  (seg1 slice2 127.0.0.1:7003 pid=1675189)
+NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edda60f7714/pip.lock'  (seg2 slice2 127.0.0.1:7004 pid=1675190)
  ?column? 
 ----------
  t
@@ -127,6 +127,6 @@ SELECT DISTINCT * FROM
 ) t;
                                                 test_import                                                
 -----------------------------------------------------------------------------------------------------------
- <module 'numpy' from '/tmp/plpython3/venv_29edd9991265c/lib64/python3.9/site-packages/numpy/__init__.py'>
+ <module 'numpy' from '/tmp/plpython3/venv_29edda60f7714/lib64/python3.9/site-packages/numpy/__init__.py'>
 (1 row)
 
