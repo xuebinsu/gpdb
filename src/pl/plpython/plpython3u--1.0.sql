@@ -9,10 +9,3 @@
 CREATE LANGUAGE plpython3u;
 
 COMMENT ON LANGUAGE plpython3u IS 'PL/Python3U untrusted procedural language';
-
-CREATE SCHEMA plpython3;
-
-CREATE OR REPLACE FUNCTION plpython3.create_virtual_env(
-    creator text
-) RETURNS text AS 'MODULE_PATHNAME', 'create_virtual_env'
-LANGUAGE c;

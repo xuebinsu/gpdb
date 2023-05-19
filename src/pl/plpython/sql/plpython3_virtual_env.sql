@@ -1,4 +1,35 @@
-SELECT plpython3.create_virtual_env('venv') \gset
+CREATE OR REPLACE FUNCTION create_virtual_env(
+    prefix text, 
+    manager text, 
+    current_ts timestamp
+) RETURNS text AS $$
+from pathlib import Path
+from subprocess import check_output, STDOUT
+
+env_name = f'{manager}_{current_ts}'
+prefix_dir = Path(prefix)
+prefix_dir.mkdir(parents=True, exist_ok=True)
+lock_path = prefix_dir / f"{manager}.lock"
+try:
+    open(lock_path, "x")
+    stdout = check_output(
+        [sys.executable, '-m', manager, env_name], stderr=STDOUT, text=True)
+    close(lock_path)
+    os.remove(lock_path)
+    plpy.notice(stdout)
+    return env_name
+except FileExistsError as e:
+    plpy.notice(e)
+    return None
+$$ LANGUAGE plpython3u;
+
+SELECT create_virtual_env('/tmp/plpython3', 'venv', now())
+UNION ALL
+SELECT create_virtual_env('/tmp/plpython3', 'venv', now())
+FROM gp_dist_random('gp_id')
+LIMIT 1 /gset
+
+\connect
 
 SET plpython3.virtual_env = :'create_virtual_env';
 
@@ -49,13 +80,14 @@ CREATE OR REPLACE FUNCTION pip_install(name TEXT)
 RETURNS text AS $$
 import os
 import sys
-from pathlib import PurePath
+from pathlib import Path
 from subprocess import check_output, STDOUT
 
+lock_path = Path(sys.prefix) / "pip.lock"
 try:
-    lock_path = PurePath(sys.prefix) / "pip.lock"
     open(lock_path, "x")
     stdout = check_output([sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
+    close(lock_path)
     os.remove(lock_path)
     return stdout
 except FileExistsError as e:
