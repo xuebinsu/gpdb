@@ -101,6 +101,7 @@ REGRESS = \
 	plpython_do \
 	plpython_global \
 	plpython_import \
+	plpython_spi \
 	plpython_newline \
 	plpython_void \
 	plpython_call \
