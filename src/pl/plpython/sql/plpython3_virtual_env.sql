@@ -1,49 +1,42 @@
 CREATE OR REPLACE FUNCTION create_virtual_env(
     prefix text, 
     manager text, 
-    current_ts timestamp
+    current_ts int8
 ) RETURNS text AS $$
+import sys
 from pathlib import Path
-from subprocess import check_output, STDOUT
+from subprocess import check_output, STDOUT, CalledProcessError
 
-env_name = f'{manager}_{current_ts}'
-prefix_dir = Path(prefix)
-prefix_dir.mkdir(parents=True, exist_ok=True)
-lock_path = prefix_dir / f"{manager}.lock"
+env_name = f'{manager}_{hex(current_ts)}'
+env_dir = Path(prefix) / env_name
 try:
-    open(lock_path, "x")
+    env_dir.mkdir(parents=True, exist_ok=False)
     stdout = check_output(
-        [sys.executable, '-m', manager, env_name], stderr=STDOUT, text=True)
-    close(lock_path)
-    os.remove(lock_path)
-    plpy.notice(stdout)
+        [sys.executable, '-m', manager, str(env_dir)], stderr=STDOUT, text=True)
     return env_name
 except FileExistsError as e:
-    plpy.notice(e)
     return None
+except CalledProcessError as e:
+    plpy.notice(e.output)
+    raise
 $$ LANGUAGE plpython3u;
 
-SELECT create_virtual_env('/tmp/plpython3', 'venv', now())
-UNION ALL
-SELECT create_virtual_env('/tmp/plpython3', 'venv', now())
-FROM gp_dist_random('gp_id')
-LIMIT 1 /gset
+WITH create_virtual_env AS (
+    SELECT create_virtual_env('/tmp/plpython3', 'venv', extract(epoch from now())::int8) AS env_name
+    UNION ALL
+    SELECT create_virtual_env('/tmp/plpython3', 'venv', extract(epoch from now())::int8) AS env_name
+    FROM gp_dist_random('gp_id')
+)
+SELECT * FROM create_virtual_env
+WHERE env_name IS NOT NULL \gset
 
 \connect
 
-SET plpython3.virtual_env = :'create_virtual_env';
+SET plpython3.virtual_env = :'env_name';
 
 CREATE OR REPLACE FUNCTION test_path_added(virtual_env_name text) 
 RETURNS TEXT AS $$
 import sys
-
-plpy.notice('PYTHON VIRTUAL ENV sys.prefix=' + str(sys.prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.exec_prefix=' + str(sys.exec_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.executable=' + str(sys.executable))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_prefix=' + str(sys.base_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_exec_prefix=' + str(sys.base_exec_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_executable=' + str(sys._base_executable))
-plpy.notice('PYTHON VIRTUAL ENV sys.home=' + str(sys._home))
 
 assert sys.prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys.exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
@@ -51,22 +44,25 @@ assert sys.executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
 assert sys.base_prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys.base_exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
-
 return "SUCCESS"
 $$ language plpython3u;
 
 SELECT DISTINCT * FROM (
-    SELECT test_path_added(:'create_virtual_env')
+    SELECT test_path_added(:'env_name')
     UNION ALL
-    SELECT test_path_added(:'create_virtual_env') FROM gp_dist_random('gp_id')
+    SELECT test_path_added(:'env_name') FROM gp_dist_random('gp_id')
 ) t;
 
-SET plpython3.virtual_env = :'create_virtual_env';
+SET plpython3.virtual_env = :'env_name';
 
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
 import importlib
-return importlib.import_module(name)
+
+try:
+    return importlib.import_module(name)
+except ModuleNotFoundError as e:
+    return e.msg
 $$ language plpython3u;
 
 SELECT DISTINCT * FROM
@@ -85,14 +81,17 @@ from subprocess import check_output, STDOUT
 
 lock_path = Path(sys.prefix) / "pip.lock"
 try:
-    open(lock_path, "x")
-    stdout = check_output([sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
-    close(lock_path)
+    lock_file = open(lock_path, "x")
+    stdout = check_output(
+        [sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
+    lock_file.close()
     os.remove(lock_path)
     return stdout
 except FileExistsError as e:
-    plpy.notice(e)
     return None
+except CalledProcessError as e:
+    plpy.notice(e.output)
+    raise
 $$ language plpython3u;
 
 WITH pip_install AS (
@@ -108,7 +107,7 @@ WITH pip_install AS (
         (stdout LIKE 'Requirement already satisfied: numpy%')
     )
 )
-SELECT NOT EXISTS (SELECT * FROM install_error);
+SELECT NOT EXISTS (SELECT * FROM install_error) AS success;
 
 SELECT DISTINCT * FROM
 (

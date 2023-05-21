@@ -5,8 +5,8 @@ m/ \(plpy_exec\.c:\d+\)/
 s/ \(plpy_exec\.c:\d+\)//
 m/ \(plpython\.c:\d+\)/
 s/ \(plpython\.c:\d+\)//
-m/venv_[0-9a-f]+/
-s/venv_[0-9a-f]+/venv_<timestamp>/
+m/venv_0x[0-9a-f]+/
+s/venv_0x[0-9a-f]+/venv_<timestamp>/
 -- end_matchsubs
 
 # Copied from src/test/regress/init_file:

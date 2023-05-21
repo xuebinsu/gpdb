@@ -1,16 +1,38 @@
-SELECT plpython3.create_virtual_env('venv') \gset
-SET plpython3.virtual_env = :'create_virtual_env';
+CREATE OR REPLACE FUNCTION create_virtual_env(
+    prefix text, 
+    manager text, 
+    current_ts int8
+) RETURNS text AS $$
+import sys
+from pathlib import Path
+from subprocess import check_output, STDOUT, CalledProcessError
+
+env_name = f'{manager}_{hex(current_ts)}'
+env_dir = Path(prefix) / env_name
+try:
+    env_dir.mkdir(parents=True, exist_ok=False)
+    stdout = check_output(
+        [sys.executable, '-m', manager, str(env_dir)], stderr=STDOUT, text=True)
+    return env_name
+except FileExistsError as e:
+    return None
+except CalledProcessError as e:
+    plpy.notice(e.output)
+    raise
+$$ LANGUAGE plpython3u;
+WITH create_virtual_env AS (
+    SELECT create_virtual_env('/tmp/plpython3', 'venv', extract(epoch from now())::int8) AS env_name
+    UNION ALL
+    SELECT create_virtual_env('/tmp/plpython3', 'venv', extract(epoch from now())::int8) AS env_name
+    FROM gp_dist_random('gp_id')
+)
+SELECT * FROM create_virtual_env
+WHERE env_name IS NOT NULL \gset
+\connect
+SET plpython3.virtual_env = :'env_name';
 CREATE OR REPLACE FUNCTION test_path_added(virtual_env_name text) 
 RETURNS TEXT AS $$
 import sys
-
-plpy.notice('PYTHON VIRTUAL ENV sys.prefix=' + str(sys.prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.exec_prefix=' + str(sys.exec_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.executable=' + str(sys.executable))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_prefix=' + str(sys.base_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_exec_prefix=' + str(sys.base_exec_prefix))
-plpy.notice('PYTHON VIRTUAL ENV sys.base_executable=' + str(sys._base_executable))
-plpy.notice('PYTHON VIRTUAL ENV sys.home=' + str(sys._home))
 
 assert sys.prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys.exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
@@ -18,53 +40,28 @@ assert sys.executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
 assert sys.base_prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys.base_exec_prefix == f"/tmp/plpython3/{virtual_env_name}"
 assert sys._base_executable == f"/tmp/plpython3/{virtual_env_name}/bin/python"
-
 return "SUCCESS"
 $$ language plpython3u;
 SELECT DISTINCT * FROM (
-    SELECT test_path_added(:'create_virtual_env')
+    SELECT test_path_added(:'env_name')
     UNION ALL
-    SELECT test_path_added(:'create_virtual_env') FROM gp_dist_random('gp_id')
+    SELECT test_path_added(:'env_name') FROM gp_dist_random('gp_id')
 ) t;
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg0 slice2 127.0.0.1:7002 pid=1675197)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg1 slice2 127.0.0.1:7003 pid=1675195)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_exec_prefix=/tmp/plpython3/venv_29edda60f7714  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.base_executable=/tmp/plpython3/venv_29edda60f7714/bin/python  (seg2 slice2 127.0.0.1:7004 pid=1675196)
-NOTICE:  PYTHON VIRTUAL ENV sys.home=/usr/bin  (seg2 slice2 127.0.0.1:7004 pid=1675196)
  test_path_added 
 -----------------
  SUCCESS
 (1 row)
 
-SET plpython3.virtual_env = :'create_virtual_env';
+SET plpython3.virtual_env = :'env_name';
 ERROR:  SET PYTHON Virtual Env failed, the GUC value can only be changed before initializing the python interpreter.
 CREATE OR REPLACE FUNCTION test_import(name TEXT) 
 RETURNS text AS $$
 import importlib
-return importlib.import_module(name)
+
+try:
+    return importlib.import_module(name)
+except ModuleNotFoundError as e:
+    return e.msg
 $$ language plpython3u;
 SELECT DISTINCT * FROM
 (
@@ -72,31 +69,31 @@ SELECT DISTINCT * FROM
     UNION ALL
     SELECT test_import('numpy') from gp_dist_random('gp_id')
 ) t;
-ERROR:  ModuleNotFoundError: No module named 'numpy'
-CONTEXT:  Traceback (most recent call last):
-  PL/Python function "test_import", line 3, in <module>
-    return importlib.import_module(name)
-  PL/Python function "test_import", line 126, in import_module
-  PL/Python function "test_import", line 1029, in _gcd_import
-  PL/Python function "test_import", line 1006, in _find_and_load
-  PL/Python function "test_import", line 983, in _find_and_load_unlocked
-PL/Python function "test_import"
+       test_import       
+-------------------------
+ No module named 'numpy'
+(1 row)
+
 CREATE OR REPLACE FUNCTION pip_install(name TEXT) 
 RETURNS text AS $$
 import os
 import sys
-from pathlib import PurePath
+from pathlib import Path
 from subprocess import check_output, STDOUT
 
+lock_path = Path(sys.prefix) / "pip.lock"
 try:
-    lock_path = PurePath(sys.prefix) / "pip.lock"
-    open(lock_path, "x")
-    stdout = check_output([sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
+    lock_file = open(lock_path, "x")
+    stdout = check_output(
+        [sys.executable, '-m', 'pip', 'install', name], stderr=STDOUT, text=True)
+    lock_file.close()
     os.remove(lock_path)
     return stdout
 except FileExistsError as e:
-    plpy.notice(e)
     return None
+except CalledProcessError as e:
+    plpy.notice(e.output)
+    raise
 $$ language plpython3u;
 WITH pip_install AS (
     SELECT pip_install('numpy') AS stdout
@@ -111,11 +108,9 @@ WITH pip_install AS (
         (stdout LIKE 'Requirement already satisfied: numpy%')
     )
 )
-SELECT NOT EXISTS (SELECT * FROM install_error);
-NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edda60f7714/pip.lock'  (seg1 slice2 127.0.0.1:7003 pid=1675189)
-NOTICE:  [Errno 17] File exists: '/tmp/plpython3/venv_29edda60f7714/pip.lock'  (seg2 slice2 127.0.0.1:7004 pid=1675190)
- ?column? 
-----------
+SELECT NOT EXISTS (SELECT * FROM install_error) AS success;
+ success 
+---------
  t
 (1 row)
 
@@ -125,8 +120,8 @@ SELECT DISTINCT * FROM
     UNION ALL
     SELECT test_import('numpy') from gp_dist_random('gp_id')
 ) t;
-                                                test_import                                                
------------------------------------------------------------------------------------------------------------
- <module 'numpy' from '/tmp/plpython3/venv_29edda60f7714/lib64/python3.9/site-packages/numpy/__init__.py'>
+                                              test_import                                               
+--------------------------------------------------------------------------------------------------------
+ <module 'numpy' from '/tmp/plpython3/venv_0x6469e6f1/lib64/python3.9/site-packages/numpy/__init__.py'>
 (1 row)
 
